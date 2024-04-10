@@ -1,0 +1,524 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["compartido", "configuracion", "custom", "seguridad", "transaccion"]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model accion {
+  accionid   String  @id @db.VarChar(128)
+  empresaid  String  @db.VarChar(128)
+  nombre     String? @db.VarChar(150)
+  tipoaccion String? @db.VarChar(128)
+  empresa    empresa @relation(fields: [empresaid], references: [empresaid], map: "forenky_fk1")
+
+  @@index([empresaid], map: "fki_forenky_fk1")
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model api {
+  apiid             String        @id @db.VarChar(128)
+  empresaid         String        @db.VarChar(128)
+  endpoint          String        @db.VarChar(2048)
+  requiere_headhttp Boolean?      @default(false)
+  activo            Boolean       @default(true)
+  empresa           empresa       @relation(fields: [empresaid], references: [empresaid], map: "forenky_fk1")
+  api_headers       api_headers[]
+  api_metodos       api_metodos[]
+
+  @@schema("compartido")
+}
+
+model evento {
+  eventoid          String        @id @db.VarChar(128)
+  empresaid         String        @db.VarChar(128)
+  equipoid          String        @db.VarChar(128)
+  fecha             DateTime      @db.Date
+  es_coneccion      Boolean       @db.Boolean
+  detalle_mensaje   String?       @db.VarChar(4000)
+  empresa           empresa       @relation(fields: [empresaid], references: [empresaid], map: "empresa_fk01")
+  equipo            equipo        @relation(fields: [equipoid], references: [equipoid], map: "fk_equipo_fk02")
+  @@schema("compartido") 
+}
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model api_headers {
+  headerid   String  @id @db.VarChar(128)
+  apiid      String  @db.VarChar(128)
+  nombre     String  @db.VarChar(150)
+  valor      String? @db.VarChar(4000)
+  valor_fijo Boolean @default(true)
+  orden      Int?    @default(0)
+  api        api     @relation(fields: [apiid], references: [apiid], onDelete: NoAction, onUpdate: NoAction, map: "forenki_fk01")
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model api_metodos {
+  metodoid              String   @id @db.VarChar(128)
+  apiid                 String   @db.VarChar(128)
+  empresaid             String   @db.VarChar(128)
+  nombre                String   @db.VarChar(150)
+  metodo_http           String   @db.VarChar(50)
+  requiere_content_type Boolean  @default(false)
+  content_type          String?  @db.VarChar(512)
+  tiene_parametros      Boolean? @default(false)
+  cantidad_parametros   Int      @default(0)
+  activo                Boolean? @default(true)
+  api                   api      @relation(fields: [apiid], references: [apiid], onDelete: Cascade, map: "forenky_fk01")
+  empresa               empresa  @relation(fields: [empresaid], references: [empresaid], map: "forenky_fk02")
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model equipo_entrada_salida {
+  entrada_salidaid                                    String   @id @db.VarChar(128)
+  empresaid                                           String   @db.VarChar(128)
+  tipoequipoid                                        String   @db.VarChar(128)
+  nombre                                              String   @db.VarChar(150)
+  numero_pin                                          String?  @db.VarChar(14)
+  es_entrada                                          Boolean?
+  es_digital                                          Boolean?
+  empresa_equipo_entrada_salida_empresaidToempresa    empresa  @relation("equipo_entrada_salida_empresaidToempresa", fields: [empresaid], references: [empresaid], map: "equipo_entrada_salida_fk")
+  empresa_equipo_entrada_salida_tipoequipoidToempresa empresa  @relation("equipo_entrada_salida_tipoequipoidToempresa", fields: [tipoequipoid], references: [empresaid], map: "equipo_entrada_salida_fk1")
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model schema_equipo {
+  equipo_schemaid String     @id @db.VarChar(128)
+  tipoequipoid    String     @db.VarChar(128)
+  nombre_campo    String     @db.VarChar(50)
+  permite_nulo    Boolean    @default(true)
+  tipo_dato       String?    @db.VarChar(50)
+  orden           Int        @default(1)
+  tipoequipo      tipoequipo @relation(fields: [tipoequipoid], references: [tipoequipoid], map: "tipoequipo_fk01")
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tarea {
+  taskid       String      @id @db.VarChar(128)
+  empresaid    String      @db.VarChar(128)
+  nombre       String      @db.VarChar(150)
+  ubicacionid  String      @db.VarChar(128)
+  periodicidad String?     @default("D") @db.VarChar(1)
+  activo       Boolean?    @default(true)
+  empresa      empresa     @relation(fields: [empresaid], references: [empresaid], map: "tarea_fk")
+  tarea_dia    tarea_dia[]
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tarea_dia {
+  detalleid    String      @id @db.VarChar(128)
+  tareaid      String      @db.VarChar(128)
+  empresaid    String      @db.VarChar(128)
+  numero_dia   Int         @default(1) @db.SmallInt
+  hora         DateTime    @db.Time(6)
+  comandoid    String?     @db.VarChar(128)
+  comando      String?
+  tipoequipoid String?     @db.VarChar(128)
+  activo       Boolean     @default(true)
+  empresa      empresa     @relation(fields: [empresaid], references: [empresaid], map: "tarea_dia_fk")
+  tarea        tarea       @relation(fields: [tareaid], references: [taskid], map: "tarea_dia_fk1")
+  tipoequipo   tipoequipo? @relation(fields: [tipoequipoid], references: [tipoequipoid], onDelete: Restrict, map: "tarea_dia_fk2")
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tarea_ubicacion {
+  tarea_ubicacionid String   @id @db.VarChar(128)
+  tareaid           String   @db.VarChar(128)
+  ubicacionid       String   @db.VarChar(128)
+  activo            Boolean? @default(true)
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tipo_acciones {
+  tipoaccionid  String   @id @db.VarChar(128)
+  nombre        String?  @db.VarChar(100)
+  aplica_equipo Boolean  @default(false)
+  codigo_sql    Boolean? @default(true)
+  codigo_js     Boolean? @default(false)
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tipoequipo {
+  tipoequipoid                     String                        @id(map: "pk_tipotiempo") @db.VarChar(128)
+  nombre                           String                        @db.VarChar(150)
+  descripcion                      String?                       @db.VarChar(500)
+  puede_registrar_multi_datos      Boolean
+  activo                           Boolean
+  tiponotificacionid               String                        @db.VarChar(128)
+  empresaid                        String                        @db.VarChar(128)
+  puede_recibir_comandos           Boolean?                      @default(false)
+  maneja_calendario                Boolean?                      @default(false)
+  calendario_individual            Boolean?                      @default(false)
+  minutos_max_para_olvidar         Int?                          @default(0)
+  maneja_esquema_pines             Boolean?                      @default(false)
+  numeros_entradas_digitales       Int?                          @default(0)
+  numero_entregas_analogas         Int?                          @default(1)
+  numero_salidas                   Int?                          @default(1)
+  tiposchemaid                     String                        @db.VarChar(128)
+  permite_campos                   Boolean?                      @default(false)
+  envio_constante_dotos            Boolean?                      @default(false)
+  numero_segundos_entre_enviodatos Int?                          @default(0)
+  modelo_dispositivo               String?                       @db.VarChar(250)
+  marca_dispositivo                String?                       @db.VarChar(250)
+  schema_equipo                    schema_equipo[]
+  tarea_dia                        tarea_dia[]
+  empresa                          empresa                       @relation(fields: [empresaid], references: [empresaid], map: "tipoequipo_fk")
+  tipoequipo_schemas_estructura    tipoequipo_schemas_estructura @relation(fields: [tiposchemaid], references: [tiposchemaid], map: "tipoequipo_fk1")
+  tipoequipotiempo                 tipoequipotiempo[]
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tipoequipo_schemas_estructura {
+  tiposchemaid    String       @id(map: "tipo_schemas_data_pkey") @db.VarChar(128)
+  nombre          String       @db.VarChar(200)
+  objeto          Boolean?     @default(false)
+  activo          Boolean?     @default(true)
+  contiene_campos Boolean?     @default(false)
+  tipoequipo      tipoequipo[]
+
+  @@schema("compartido")
+}
+
+model departamento {
+  departamentoid String  @id(map: "pk_departamento") @db.VarChar(128)
+  empresaid      String  @db.VarChar(128)
+  nombre         String  @db.VarChar(150)
+  activo         Boolean
+  empresa        empresa @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_departamento_empresa")
+
+  @@schema("configuracion")
+}
+
+model empresa {
+  empresaid                                                         String                  @id(map: "pk_empresa") @db.VarChar(128)
+  nombre                                                            String                  @db.VarChar(150)
+  rtn                                                               String                  @db.VarChar(50)
+  direccion                                                         String                  @db.VarChar(250)
+  provincia                                                         String                  @db.VarChar(50)
+  ciudad                                                            String                  @db.VarChar(150)
+  telefono                                                          String?                 @db.VarChar(50)
+  email                                                             String?                 @db.VarChar(150)
+  activo                                                            Boolean
+  tienesucursal                                                     Boolean
+  responsable                                                       String?                 @db.VarChar(150)
+  accion                                                            accion[]
+  api                                                               api[]
+  api_metodos                                                       api_metodos[]
+  equipo_entrada_salida_equipo_entrada_salida_empresaidToempresa    equipo_entrada_salida[] @relation("equipo_entrada_salida_empresaidToempresa")
+  equipo_entrada_salida_equipo_entrada_salida_tipoequipoidToempresa equipo_entrada_salida[] @relation("equipo_entrada_salida_tipoequipoidToempresa")
+  tarea                                                             tarea[]
+  tarea_dia                                                         tarea_dia[]
+  tipoequipo                                                        tipoequipo[]
+  departamento                                                      departamento[]
+  empresaconfiguracion                                              empresaconfiguracion[]
+  equipo                                                            equipo[]
+  novedadregistro                                                   novedadregistro[]
+  rol                                                               rol[]
+  rolportipoubicacion                                               rolportipoubicacion[]
+  sucursal                                                          sucursal[]
+  tiponotificacion                                                  tiponotificacion[]
+  tipoubicacion                                                     tipoubicacion[]
+  ubicacion                                                         ubicacion[]
+  ubicacionempleado                                                 ubicacionempleado[]
+  empleado                                                          empleado[]
+  puesto                                                            puesto[]
+  registrotiempo                                                    registrotiempo[]
+  numerodocumento                                                   numerodocumento[]
+  tipoequipotiempo                                                  tipoequipotiempo[]
+  evento                                                            evento[]
+
+  @@schema("configuracion")
+}
+
+model empresaconfiguracion {
+  empresaconfid           String  @id(map: "pk_empresaconfiguracion") @db.VarChar(128)
+  empresaid               String  @db.VarChar(128)
+  registrarlog            Boolean
+  registrarlog_contenido  Boolean
+  diasalmacenarlog        Int     @db.SmallInt
+  puedegenerarlinkmensaje Boolean
+  empresa                 empresa @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_empresaconfiguracion_empresa")
+
+  @@schema("configuracion")
+}
+
+model equipo {
+  equipoid          String     @id(map: "pk_equipo") @db.VarChar(128)
+  empresaid         String     @db.VarChar(128)
+  nombre            String     @db.VarChar(150)
+  ubicacionid       String?    @db.VarChar(128)
+  sucursalid        String     @db.VarChar(128)
+  tipoequipoid      String     @db.VarChar(128)
+  activo            Boolean
+  notas             String?    @db.VarChar(500)
+  fecharegistro     DateTime
+  descripcionequipo String?    @db.VarChar(4000)
+  empresa           empresa    @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_empresa")
+  sucursal          sucursal   @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_sucursal")
+  ubicacion         ubicacion? @relation(fields: [ubicacionid], references: [ubicacionid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_ubicacion")
+  evento            evento[]
+  
+  @@schema("configuracion")
+}
+
+model novedadregistro {
+  novedadregistroid String         @id(map: "pk_novedadregistro") @db.VarChar(128)
+  empresaid         String         @db.VarChar(128)
+  registroid        String         @db.VarChar(128)
+  empleadoid        String         @db.VarChar(128)
+  sucursalid        String         @db.VarChar(128)
+  fecha             DateTime
+  horainicio        DateTime       @db.Time(6)
+  horafin           DateTime?      @db.Time(6)
+  detalleactividad  String?        @db.VarChar(4000)
+  finalizo          Boolean
+  trasladar         Boolean
+  empleado          empleado       @relation(fields: [empleadoid], references: [empleadoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_novedadregistro_empleado")
+  empresa           empresa        @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_novedadregistro_empresa")
+  registrotiempo    registrotiempo @relation(fields: [registroid], references: [registroid], onDelete: NoAction, onUpdate: NoAction, map: "fk_novedadregistro_registrotiempo")
+  sucursal          sucursal       @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_novedadregistro_sucursal")
+
+  @@schema("configuracion")
+}
+
+model rol {
+  rolid                  String                @id(map: "pk_rol") @db.VarChar(128)
+  empresaid              String                @db.VarChar(128)
+  nombre                 String                @db.VarChar(150)
+  descripcion            String?               @db.VarChar(500)
+  recibenotificacion     Boolean
+  puedemodificar         Boolean
+  puedeaprobar           Boolean
+  esresponsableubicacion Boolean
+  empresa                empresa               @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rol_empresa")
+  rolportipoubicacion    rolportipoubicacion[]
+
+  @@schema("configuracion")
+}
+
+model rolportipoubicacion {
+  roltipoubicacionid String        @id(map: "pk_rolportipoubicacion") @db.VarChar(128)
+  empresaid          String        @db.VarChar(128)
+  tipoubicacionid    String        @db.VarChar(128)
+  rolid              String        @db.VarChar(128)
+  cantidad           Int           @db.SmallInt
+  empresa            empresa       @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rolportipoubicacion_empresa")
+  rol                rol           @relation(fields: [rolid], references: [rolid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rolportipoubicacion_rol")
+  tipoubicacion      tipoubicacion @relation(fields: [tipoubicacionid], references: [tipoubicacionid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rolportipoubicacion_tipoubicacion")
+
+  @@schema("configuracion")
+}
+
+model sucursal {
+  sucursalid            String            @id(map: "pk_sucursal") @db.VarChar(128)
+  empresaid             String            @db.VarChar(128)
+  nombre                String            @db.VarChar(150)
+  direccion             String?           @db.VarChar(150)
+  provincia             String?           @db.VarChar(150)
+  ciudad                String?           @db.VarChar(150)
+  telefono              String?           @db.VarChar(50)
+  activa                Boolean
+  manejainstanciapropia Boolean
+  equipo                equipo[]
+  novedadregistro       novedadregistro[]
+  empresa               empresa           @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_sucursal_empresa")
+  ubicacion             ubicacion[]
+  empleado              empleado[]
+  registrotiempo        registrotiempo[]
+  numerodocumento       numerodocumento[]
+
+  @@schema("configuracion")
+}
+
+model tiponotificacion {
+  tiponotificacionid   String   @id(map: "pk_tiponotificacion") @db.VarChar(128)
+  empresaid            String   @db.VarChar(128)
+  nombre               String   @db.VarChar(150)
+  descripcion          String?  @db.VarChar(500)
+  requiereapi          Boolean
+  apiendpoint          String?  @db.VarChar(500)
+  apikey               String?  @db.VarChar(500)
+  httpheader           String?  @db.VarChar(100)
+  requiereservercorreo Boolean
+  emailserver          String?  @db.VarChar(500)
+  emailuser            String?  @db.VarChar(50)
+  emailpassword        String?  @db.VarChar(500)
+  emailssl             Boolean?
+  emailport            Int?
+  empresa              empresa  @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tiponotificacion_empresa")
+
+  @@schema("configuracion")
+}
+
+model tipoubicacion {
+  tipoubicacionid     String                @id(map: "pk_tipoubicacion") @db.VarChar(128)
+  empresaid           String                @db.VarChar(128)
+  nombre              String                @db.VarChar(150)
+  descripcion         String?               @db.VarChar(500)
+  numerorolesasig     Int                   @db.SmallInt
+  rolportipoubicacion rolportipoubicacion[]
+  empresa             empresa               @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipoubicacion_empresa")
+
+  @@schema("configuracion")
+}
+
+model ubicacion {
+  ubicacionid       String              @id(map: "pk_ubicacion") @db.VarChar(128)
+  empresaid         String              @db.VarChar(128)
+  sucursalid        String              @db.VarChar(128)
+  nombre            String              @db.VarChar(150)
+  departamentoid    String              @db.VarChar(128)
+  descripcion       String?             @db.VarChar(250)
+  activo            Boolean
+  ubicacionpadreid  String?             @db.VarChar(128)
+  tienehijos        Boolean
+  equipo            equipo[]
+  empresa           empresa             @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_ubicacion_empresa")
+  sucursal          sucursal            @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_ubicacion_sucursal")
+  ubicacionempleado ubicacionempleado[]
+  registrotiempo    registrotiempo[]
+
+  @@schema("configuracion")
+}
+
+model ubicacionempleado {
+  ubicacionempleado String    @id(map: "pk_ubicacionempleado") @db.VarChar(128)
+  empresaid         String    @db.VarChar(128)
+  ubicacionid       String    @db.VarChar(128)
+  empleadoid        String    @db.VarChar(128)
+  rolid             String    @db.VarChar(128)
+  sucursalid        String?   @db.VarChar(128)
+  empleado          empleado  @relation(fields: [empleadoid], references: [empleadoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_ubicacionempleado_empleado")
+  empresa           empresa   @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_ubicacionempleado_empresa")
+  ubicacion         ubicacion @relation(fields: [ubicacionid], references: [ubicacionid], onDelete: NoAction, onUpdate: NoAction, map: "fk_ubicacionempleado_ubicacion")
+
+  @@schema("configuracion")
+}
+
+model empleado {
+  empleadoid        String              @id(map: "pk_empleado") @db.VarChar(128)
+  empresaid         String              @db.VarChar(128)
+  sucursalid        String              @db.VarChar(128)
+  primernombre      String              @db.VarChar(50)
+  segundonombre     String?             @db.VarChar(50)
+  primerapellido    String              @db.VarChar(50)
+  segundoapellido   String?             @db.VarChar(50)
+  codigo            Int
+  puestoid          String              @db.VarChar(128)
+  telefono          String              @db.VarChar(50)
+  correoelectronico String?             @db.VarChar(100)
+  tienewhatsapp     Boolean?
+  fechacontratacion DateTime
+  fechanacimiento   DateTime
+  fecharetiro       DateTime?
+  activo            Boolean
+  novedadregistro   novedadregistro[]
+  ubicacionempleado ubicacionempleado[]
+  empresa           empresa             @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_empleado_empresa")
+  sucursal          sucursal            @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_empleado_sucursal")
+
+  @@schema("custom")
+}
+
+model puesto {
+  puestoid    String  @id(map: "pk_puesto") @db.VarChar(128)
+  empresaid   String  @db.VarChar(128)
+  nombre      String  @db.VarChar(150)
+  descripcion String? @db.VarChar(150)
+  activo      Boolean
+  empresa     empresa @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_puesto_empresa")
+
+  @@schema("custom")
+}
+
+model registrotiempo {
+  registroid        String            @id(map: "pk_registrotiempo") @db.VarChar(128)
+  empresaid         String            @db.VarChar(128)
+  sucursalid        String            @db.VarChar(128)
+  ubicacionid       String            @db.VarChar(128)
+  numero            BigInt
+  fecharegistro     DateTime
+  horainicio        DateTime
+  horafinal         DateTime?
+  tiempoid          String            @db.VarChar(128)
+  estado            Int               @db.SmallInt
+  subcategoriaid    String?           @db.VarChar(128)
+  codigoempleado    Int?
+  masivo            Boolean?
+  fechaautorizado   DateTime?
+  codigoautorizador Int?
+  jornada           Int?
+  codigosupervisor  Int?
+  observacion       String?           @db.VarChar(4000)
+  razonrechazo      String?           @db.VarChar(4000)
+  registroapi       Boolean?          @default(false)
+  novedadregistro   novedadregistro[]
+  empresa           empresa           @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_registrotiempo_empresa")
+  sucursal          sucursal          @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_registrotiempo_sucursal")
+  tiempo            tiempo            @relation(fields: [tiempoid], references: [tiempoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_registrotiempo_tiempo")
+  ubicacion         ubicacion         @relation(fields: [ubicacionid], references: [ubicacionid], onDelete: NoAction, onUpdate: NoAction, map: "fk_registrotiempo_ubicacion")
+
+  @@schema("custom")
+}
+
+model tiempo {
+  tiempoid          String             @id(map: "pk_tiempo") @db.VarChar(128)
+  empresaid         String             @db.VarChar(128)
+  codigo            String             @db.VarChar(20)
+  descripcion       String?            @db.VarChar(150)
+  notificar         Boolean
+  tienesubcategoria Boolean
+  enextra           Boolean
+  tipopago          String?            @db.VarChar(50)
+  registrotiempo    registrotiempo[]
+  tipoequipotiempo  tipoequipotiempo[]
+
+  @@schema("custom")
+}
+
+model numerodocumento {
+  id            String   @id(map: "pk_numerodocumento") @db.VarChar(128)
+  empresaid     String   @db.VarChar(128)
+  sucursalid    String   @db.VarChar(128)
+  numero        BigInt
+  tipodocumento String   @db.VarChar(2)
+  empresa       empresa  @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_numerodocumento_empresa")
+  sucursal      sucursal @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_numerodocumento_sucursal")
+
+  @@schema("transaccion")
+}
+
+model tipoequipotiempo {
+  tipoequipotiempoid String     @id(map: "pk_tipoequipotiempo") @db.VarChar(128)
+  empresaid          String     @db.VarChar(128)
+  tipoequipoid       String     @db.VarChar(128)
+  tiempoid           String     @db.VarChar(128)
+  empresa            empresa    @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipoequipotiempo_empresa")
+  tiempo             tiempo     @relation(fields: [tiempoid], references: [tiempoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipoequipotiempo_tiempo")
+  tipoequipo         tipoequipo @relation(fields: [tipoequipoid], references: [tipoequipoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipoequipotiempo_tipoequipo")
+
+  @@schema("transaccion")
+}
