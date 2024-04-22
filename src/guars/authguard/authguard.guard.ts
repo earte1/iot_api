@@ -39,12 +39,13 @@ export class AuthguardGuard implements CanActivate {
   }
 }
 */
-import { 
-  CanActivate, 
-  ExecutionContext, 
-  HttpException, 
-  HttpStatus, 
-  Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Injectable
+} from '@nestjs/common';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
@@ -67,7 +68,7 @@ export class AuthguardGuard implements CanActivate {
       const response = await axios.post(
         `${api_host}/api/v2/ApiKey/keyvalidate`,
         { keyValue: apiKey, EmpresaId: process.env.EMPRESA_ID });
-        console.log(response.data)
+      console.log(response.data)
       return response.status === 200;
     } catch (error) {
       throw new HttpException('No autorizado', HttpStatus.UNAUTHORIZED);

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import {Prisma } from '@prisma/client';
+
 import { DatabaseService } from 'src/database/database.service';
 import { GenericRepository } from 'src/database/generic.service';
 
 @Injectable()
-export class EventoService extends GenericRepository<'equipo'> {
+export class SucursalService extends GenericRepository<'sucursal'> {
   constructor(private readonly prisma1: DatabaseService) {
     super(prisma1);
-    this.model = 'equipo';
+    this.model = 'sucursal';
   }
   
 }

@@ -1,8 +1,8 @@
+//import { Equipo } from './entities/equipo.entity';
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { EquipoService } from './equipo.service';
-import { CreateEquipoDto } from './dto/create-equipo.dto';
-import { UpdateEquipoDto } from './dto/update-equipo.dto';
 import { AuthguardGuard } from 'src/guars/authguard/authguard.guard';
+import {Prisma } from '@prisma/client';
+import { EquipoService } from './equipo.service';
 
 @Controller('equipo')
 @UseGuards(AuthguardGuard)
@@ -10,7 +10,7 @@ export class EquipoController {
   constructor(private readonly equipoService: EquipoService) {}
 
   @Post()
-  create(@Body() createEquipoDto: CreateEquipoDto) {
+  create(@Body() createEquipoDto: Prisma.equipoCreateInput) {
     return this.equipoService.create(createEquipoDto);
   }
 
@@ -21,16 +21,16 @@ export class EquipoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.equipoService.findOne(+id);
+    return this.equipoService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEquipoDto: UpdateEquipoDto) {
-    return this.equipoService.update(+id, updateEquipoDto);
+  update(@Param('id') id: string, @Body() updateEquipoDto: Prisma.equipoUpdateInput) {
+    return this.equipoService.update(id, updateEquipoDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.equipoService.remove(+id);
+    return this.equipoService.remove(id);
   }
 }

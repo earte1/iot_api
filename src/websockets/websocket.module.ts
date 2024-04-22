@@ -1,3 +1,4 @@
+import { DatabaseService } from 'src/database/database.service';
 import { Module } from "@nestjs/common";
 import { WebsocketGateway } from "./websocket.gateway";
 import { EventoService } from "src/evento/evento.service";
@@ -7,7 +8,7 @@ import {Prisma } from '@prisma/client';
 
 
 @Module({
-    providers: [WebsocketGateway, EventoService, EquipoService, UbicacionService]
+    providers: [WebsocketGateway, EventoService, EquipoService, UbicacionService, DatabaseService]
 })
 export class GatewayModule {
 
