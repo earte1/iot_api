@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { UbicacionService } from './ubicacion.service';
+import { DatabaseModule } from 'src/database/database.module';
 import { UbicacionController } from './ubicacion.controller';
-import { DatabaseService } from 'src/database/database.service';
+import { UbicacionService } from './ubicacion.service';
 
 @Module({
-  imports:[],
+  imports:[DatabaseModule],
   controllers: [UbicacionController],
   providers: [UbicacionService],
 })
 export class UbicacionModule {}
+

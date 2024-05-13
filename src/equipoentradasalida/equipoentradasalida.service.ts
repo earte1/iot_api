@@ -4,10 +4,10 @@ import { DatabaseService } from 'src/database/database.service';
 import { GenericRepository } from 'src/database/generic.service';
 
 @Injectable()
-export class UbicacionService extends GenericRepository<'ubicacion'> {
+export class EquipoentradasalidaService extends GenericRepository<'equipo_entrada_salida'> {
   constructor(private readonly prisma1: DatabaseService) {
     super(prisma1);
-    this.model = 'ubicacion';
+    this.model = 'equipo_entrada_salida';
   }
   
 }

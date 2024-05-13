@@ -36,16 +36,18 @@ model api {
 }
 
 model evento {
-  eventoid          String        @id @db.VarChar(128)
-  empresaid         String        @db.VarChar(128)
-  equipoid          String        @db.VarChar(128)
-  fecha             DateTime      @db.Date
-  es_coneccion      Boolean       @db.Boolean
-  detalle_mensaje   String?       @db.VarChar(4000)
-  empresa           empresa       @relation(fields: [empresaid], references: [empresaid], map: "empresa_fk01")
-  equipo            equipo        @relation(fields: [equipoid], references: [equipoid], map: "fk_equipo_fk02")
-  @@schema("compartido") 
+  eventoid        String   @id @db.VarChar(128)
+  empresaid       String   @db.VarChar(128)
+  equipoid        String   @db.VarChar(128)
+  fecha           DateTime @db.Date
+  es_coneccion    Boolean
+  detalle_mensaje String?  @db.VarChar(4000)
+  empresa         empresa  @relation(fields: [empresaid], references: [empresaid], map: "empresa_fk01")
+  equipo          equipo   @relation(fields: [equipoid], references: [equipoid], map: "fk_equipo_fk02")
+
+  @@schema("compartido")
 }
+
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model api_headers {
   headerid   String  @id @db.VarChar(128)
@@ -229,6 +231,7 @@ model empresa {
   api_metodos                                                       api_metodos[]
   equipo_entrada_salida_equipo_entrada_salida_empresaidToempresa    equipo_entrada_salida[] @relation("equipo_entrada_salida_empresaidToempresa")
   equipo_entrada_salida_equipo_entrada_salida_tipoequipoidToempresa equipo_entrada_salida[] @relation("equipo_entrada_salida_tipoequipoidToempresa")
+  evento                                                            evento[]
   tarea                                                             tarea[]
   tarea_dia                                                         tarea_dia[]
   tipoequipo                                                        tipoequipo[]
@@ -248,7 +251,6 @@ model empresa {
   registrotiempo                                                    registrotiempo[]
   numerodocumento                                                   numerodocumento[]
   tipoequipotiempo                                                  tipoequipotiempo[]
-  evento                                                            evento[]
 
   @@schema("configuracion")
 }
@@ -276,11 +278,11 @@ model equipo {
   notas             String?    @db.VarChar(500)
   fecharegistro     DateTime
   descripcionequipo String?    @db.VarChar(4000)
+  evento            evento[]
   empresa           empresa    @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_empresa")
   sucursal          sucursal   @relation(fields: [sucursalid], references: [sucursalid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_sucursal")
   ubicacion         ubicacion? @relation(fields: [ubicacionid], references: [ubicacionid], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipo_ubicacion")
-  evento            evento[]
-  
+
   @@schema("configuracion")
 }
 
@@ -344,7 +346,7 @@ model sucursal {
   manejainstanciapropia Boolean
   equipo                equipo[]
   novedadregistro       novedadregistro[]
-  empresa               empresa           @relation(fields: [empresaid], references: [empresaid], onDelete: NoAction, onUpdate: NoAction, map: "fk_sucursal_empresa")
+  empresa               empresa           @relation(fields: [empresaid], references: [empresaid], map: "fk_sucursal_empresa")
   ubicacion             ubicacion[]
   empleado              empleado[]
   registrotiempo        registrotiempo[]
@@ -521,4 +523,60 @@ model tipoequipotiempo {
   tipoequipo         tipoequipo @relation(fields: [tipoequipoid], references: [tipoequipoid], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipoequipotiempo_tipoequipo")
 
   @@schema("transaccion")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model conversion_escalamedida {
+  conversionid       String @id(map: "Conversion_EscalaMedida_pkey") @db.VarChar(128)
+  escalaid           String @db.VarChar(128)
+  escalaid_aconverti String @db.VarChar(128)
+  formulaid          String @db.VarChar(128)
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model escala_medida {
+  escalaid    String  @id @db.VarChar(128)
+  nombre      String  @db.VarChar(100)
+  convertible Boolean
+  tipo_dato   String  @db.VarChar(100)
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model formula_componente {
+  componenteid               String                       @id @db.VarChar(128)
+  nombre                     String                       @db.VarChar(100)
+  operador_matematico        Boolean                      @default(false)
+  requiere_ingreso           Boolean                      @default(false)
+  agrupador                  Boolean                      @default(false)
+  agrupador_inicio           Boolean?
+  agrupador_simbolo_inicio   String?                      @db.VarChar(1)
+  agrupador_simbolo_cierre   String?                      @db.VarChar(1)
+  formula_detalle_componente formula_detalle_componente[]
+
+  @@schema("compartido")
+}
+
+model formula_conversion {
+  formulaid   String  @id @db.VarChar(128)
+  nombre      String  @db.VarChar(150)
+  descripcion String? @db.VarChar(512)
+  activo      Boolean @default(true)
+
+  @@schema("compartido")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model formula_detalle_componente {
+  formuladetalleid   String             @id @db.VarChar(128)
+  orden              Int                @db.SmallInt
+  componenteid       String             @db.VarChar(128)
+  valor_constante    Float?             @default(0) @db.Real
+  nota               String?            @db.VarChar(256)
+  formula_componente formula_componente @relation(fields: [componenteid], references: [componenteid], map: "fk_componente_fk1")
+
+  @@schema("compartido")
 }

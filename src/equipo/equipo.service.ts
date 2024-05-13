@@ -51,7 +51,7 @@ export class EquipoService {
   }
 
   async remove(id: string) {
-    return this,this.dbService.equipo.delete({
+    return this.dbService.equipo.delete({
       where: 
       {
         equipoid: id,

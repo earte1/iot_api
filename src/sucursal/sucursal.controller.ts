@@ -40,6 +40,17 @@ export class SucursalController {
     });
   }
 
+  @Get('por_empresa/:id')
+  findgetPorEmpresa(@Param('id') id: string) {
+    //console.log(id, process.env.EMPRESA_ID)
+    return this.sucursalService.findMany({
+      where: {
+        empresaid: id
+        //empresaid: process.env.EMPRESA_ID
+      }
+    });
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, 
     @Body() updateSucursalDto: Prisma.sucursalUpdateInput) {

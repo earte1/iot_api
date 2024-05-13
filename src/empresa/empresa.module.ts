@@ -11,6 +11,6 @@ import { AuthMiddleware } from 'src/middleware/authverify/authverify.middleware'
 })
 export class EmpresaModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('empresa');
+    // consumer.apply(AuthMiddleware).forRoutes('empresa');
   }
 }
