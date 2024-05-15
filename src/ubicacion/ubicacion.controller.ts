@@ -29,6 +29,17 @@ export class UbicacionController {
     });
   }
 
+  @Get('por_sucursal/:id')
+  getPorSucursal(@Param('id') id: string) {
+    //console.log(process.env.EMPRESA_ID)
+    return this.ubicacionService.findMany({
+      where: {
+        sucursalid: id,
+        empresaid: process.env.EMPRESA_ID
+      }
+    });
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     //console.log(id, process.env.EMPRESA_ID)

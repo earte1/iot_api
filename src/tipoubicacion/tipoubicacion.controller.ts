@@ -32,7 +32,7 @@ export class TipoubicacionController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     //console.log(id, process.env.EMPRESA_ID)
-    return this.tipoubicacionService.findUniqueOrThrow({
+    return this.tipoubicacionService.findMany({
       where: {
         tipoubicacionid: id,
         empresaid: process.env.EMPRESA_ID

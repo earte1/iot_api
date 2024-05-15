@@ -29,6 +29,8 @@ export class UbicacionempleadoController {
     });
   }
 
+  
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     //console.log(id, process.env.EMPRESA_ID)
